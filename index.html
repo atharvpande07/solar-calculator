@@ -72,14 +72,18 @@ button:hover{background:#15803d;}
 .highlight{font-weight:bold;color:#065f46;}
 .whatsapp{background:#25d366;margin-top:10px;}
 .footer{text-align:center;font-size:13px;color:#555;margin-top:15px;}
-.note{font-size:12px;color:#666;margin-top:8px;text-align:center;}
+.note{
+  font-size:12px;
+  color:#555;
+  margin-top:8px;
+  text-align:center;
+}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-
   <div class="top">
     <div class="lang">
       <button onclick="setLang('en')">EN</button>
@@ -105,7 +109,7 @@ button:hover{background:#15803d;}
   </div>
 
   <div class="note">
-    * Government subsidy applicable up to 3 kW only (Max ₹78,000)
+    *Government subsidy applicable up to 3 kW only (max ₹78,000)
   </div>
 
   <button class="whatsapp" onclick="whatsapp()">WhatsApp – Free Site Survey</button>
@@ -117,22 +121,21 @@ button:hover{background:#15803d;}
 </div>
 
 <script>
-/* ---------- Language Text ---------- */
+/* ---------- LANGUAGE TEXT ---------- */
 const text = {
   en:{title:"Solar Savings Calculator",sub:"PM Surya Ghar Muft Bijli Yojana",
-      units:"Monthly Units",kw:"Recommended Solar Size",cost:"System Cost",
-      subsidy:"Government Subsidy",net:"Net Payable",
-      payback:"Payback Period"},
+      units:"Monthly Units",kw:"Recommended Solar Size",
+      cost:"System Cost",subsidy:"Government Subsidy",
+      net:"Net Payable",payback:"Payback Period"},
   hi:{title:"सोलर बचत कैलकुलेटर",sub:"पीएम सूर्य घर मुफ्त बिजली योजना",
-      units:"मासिक यूनिट",kw:"अनुशंसित सोलर क्षमता",cost:"सिस्टम लागत",
-      subsidy:"सरकारी सब्सिडी",net:"आपकी अंतिम लागत",
-      payback:"वसूली अवधि"},
+      units:"मासिक यूनिट",kw:"अनुशंसित सोलर क्षमता",
+      cost:"सिस्टम लागत",subsidy:"सरकारी सब्सिडी",
+      net:"आपकी अंतिम लागत",payback:"वसूली अवधि"},
   mr:{title:"सोलर बचत कॅल्क्युलेटर",sub:"पीएम सूर्य घर मोफत वीज योजना",
-      units:"मासिक युनिट",kw:"शिफारस केलेली सोलर क्षमता",cost:"सिस्टम खर्च",
-      subsidy:"शासकीय अनुदान",net:"एकूण देय रक्कम",
-      payback:"परतावा कालावधी"}
+      units:"मासिक युनिट",kw:"शिफारस केलेली सोलर क्षमता",
+      cost:"सिस्टम खर्च",subsidy:"शासकीय अनुदान",
+      net:"एकूण देय रक्कम",payback:"परतावा कालावधी"}
 };
-
 function setLang(l){
   document.getElementById("title").innerText=text[l].title;
   document.getElementById("subtitle").innerText=text[l].sub;
@@ -145,15 +148,14 @@ function setLang(l){
 }
 setLang("en");
 
-/* ---------- Subsidy Logic (Maharashtra – Official) ---------- */
+/* ---------- SUBSIDY LOGIC (MAHARASHTRA) ---------- */
 function calculateSubsidy(kw){
-  if (kw <= 1) return 30000;
-  if (kw <= 2) return 60000;
-  if (kw <= 3) return 78000;
-  return 78000; // cap at 3 kW
+  if(kw <= 1) return 30000;
+  if(kw <= 2) return 60000;
+  return 78000; // cap at 3 kW and above
 }
 
-/* ---------- Main Calculation ---------- */
+/* ---------- MAIN CALCULATION ---------- */
 function calculate(){
   let bill = Number(document.getElementById("bill").value);
   if(bill <= 0){
@@ -161,21 +163,27 @@ function calculate(){
     return;
   }
 
-  const unitCost = 10;                 // ₹ per unit
-  const unitsPerKwPerMonth = 120;      // 4 units/day × 30
-  const costPerKw = 60000;             // assumed market cost
+  const unitCost = 10;              // ₹ per unit
+  const unitsPerKwMonth = 120;      // 4 units/day × 30
+  const costPerKw = 60000;          // average system cost per kW
 
+  // Step 1: Monthly units
   let units = bill / unitCost;
-  let kw = units / unitsPerKwPerMonth;
-  kw = Math.round(kw * 2) / 2;         // round to 0.5 kW
 
+  // Step 2: Required kW (ROUND UP)
+  let rawKw = units / unitsPerKwMonth;
+  let kw = Math.ceil(rawKw);        // round UP to next kW
+
+  // Step 3: Costs & subsidy
   let systemCost = kw * costPerKw;
   let subsidy = calculateSubsidy(kw);
   let net = systemCost - subsidy;
 
+  // Step 4: Payback
   let annualSaving = bill * 12;
   let paybackMonths = Math.round((net / annualSaving) * 12);
 
+  // UI update
   document.getElementById("units").innerText = units.toFixed(0) + " units";
   document.getElementById("kw").innerText = kw + " kW";
   document.getElementById("cost").innerText = "₹ " + systemCost.toLocaleString();
@@ -186,9 +194,12 @@ function calculate(){
   document.getElementById("resultBox").style.display = "block";
 }
 
+/* ---------- WHATSAPP CTA ---------- */
 function whatsapp(){
-  let msg = "I want to install solar under PM Surya Ghar Muft Bijli Yojana. Please contact me.";
-  window.open("https://wa.me/919011788999?text=" + encodeURIComponent(msg));
+  window.open(
+    "https://wa.me/919011788999?text=" +
+    encodeURIComponent("I want to install rooftop solar under PM Surya Ghar Muft Bijli Yojana. Please contact me.")
+  );
 }
 </script>
 
