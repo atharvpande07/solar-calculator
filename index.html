@@ -17,14 +17,15 @@ body{
 }
 .card{
   background:#fff;
-  padding:28px;
-  width:420px;
+  padding:30px;
+  width:400px;
   border-radius:16px;
   box-shadow:0 15px 40px rgba(0,0,0,0.12);
 }
 .top{
   display:flex;
-  justify-content:flex-end;
+  justify-content:space-between;
+  align-items:center;
 }
 .lang button{
   border:none;
@@ -44,14 +45,14 @@ h2{
   text-align:center;
   font-size:14px;
   color:#555;
-  margin-bottom:18px;
+  margin-bottom:20px;
 }
 input,button{
   width:100%;
   padding:12px;
-  margin:8px 0;
+  margin:10px 0;
   border-radius:10px;
-  font-size:15px;
+  font-size:16px;
 }
 input{border:1px solid #ddd;}
 button{
@@ -62,22 +63,16 @@ button{
 }
 button:hover{background:#15803d;}
 .result{
-  margin-top:12px;
+  margin-top:15px;
   background:#f0fdf4;
-  padding:14px;
+  padding:15px;
   border-radius:10px;
   display:none;
 }
-.result p{margin:5px 0;font-size:14px;}
+.result p{margin:6px 0;font-size:14px;}
 .highlight{font-weight:bold;color:#065f46;}
 .whatsapp{background:#25d366;margin-top:10px;}
-.footer{text-align:center;font-size:13px;color:#555;margin-top:12px;}
-.note{
-  font-size:12px;
-  color:#555;
-  margin-top:6px;
-  text-align:center;
-}
+.footer{text-align:center;font-size:13px;color:#555;margin-top:15px;}
 </style>
 </head>
 
@@ -85,6 +80,7 @@ button:hover{background:#15803d;}
 
 <div class="card">
   <div class="top">
+    <div></div>
     <div class="lang">
       <button onclick="setLang('en')">EN</button>
       <button onclick="setLang('hi')">HI</button>
@@ -97,7 +93,7 @@ button:hover{background:#15803d;}
 
   <input id="bill" type="number" placeholder="Monthly Electricity Bill (₹)">
 
-  <button onclick="calculate()">Calculate Savings</button>
+  <button onclick="calculate()" id="calcBtn">Calculate Savings</button>
 
   <div class="result" id="resultBox">
     <p>⚡ <span id="t_units"></span>: <span class="highlight" id="units"></span></p>
@@ -108,13 +104,7 @@ button:hover{background:#15803d;}
     <p>📆 <span id="t_payback"></span>: <span class="highlight" id="payback"></span></p>
   </div>
 
-  <div class="note">
-    *Government subsidy applicable up to 3 kW only (maximum ₹78,000)
-  </div>
-
-  <button class="whatsapp" onclick="openWhatsApp()">
-    Get Free Site Survey on WhatsApp
-  </button>
+  <button class="whatsapp" onclick="whatsapp()">WhatsApp – Free Site Survey</button>
 
   <div class="footer">
     Santaji Electricals<br>
@@ -123,22 +113,24 @@ button:hover{background:#15803d;}
 </div>
 
 <script>
-/* ---------- LANGUAGE ---------- */
 const text = {
   en:{title:"Solar Savings Calculator",sub:"PM Surya Ghar Muft Bijli Yojana",
-      units:"Monthly Units",kw:"Recommended Solar Size",
-      cost:"System Cost",subsidy:"Government Subsidy",
-      net:"Net Payable",payback:"Payback Period"},
+      units:"Monthly Units",kw:"Recommended Solar Size",cost:"System Cost",
+      subsidy:"Government Subsidy",net:"Net Payable",
+      payback:"Payback Period"},
   hi:{title:"सोलर बचत कैलकुलेटर",sub:"पीएम सूर्य घर मुफ्त बिजली योजना",
-      units:"मासिक यूनिट",kw:"अनुशंसित सोलर क्षमता",
-      cost:"सिस्टम लागत",subsidy:"सरकारी सब्सिडी",
-      net:"आपकी अंतिम लागत",payback:"वसूली अवधि"},
+      units:"मासिक यूनिट",kw:"अनुशंसित सोलर क्षमता",cost:"सिस्टम लागत",
+      subsidy:"सरकारी सब्सिडी",net:"आपकी अंतिम लागत",
+      payback:"वसूली अवधि"},
   mr:{title:"सोलर बचत कॅल्क्युलेटर",sub:"पीएम सूर्य घर मोफत वीज योजना",
-      units:"मासिक युनिट",kw:"शिफारस केलेली सोलर क्षमता",
-      cost:"सिस्टम खर्च",subsidy:"शासकीय अनुदान",
-      net:"एकूण देय रक्कम",payback:"परतावा कालावधी"}
+      units:"मासिक युनिट",kw:"शिफारस केलेली सोलर क्षमता",cost:"सिस्टम खर्च",
+      subsidy:"शासकीय अनुदान",net:"एकूण देय रक्कम",
+      payback:"परतावा कालावधी"}
 };
+let lang="en";
+
 function setLang(l){
+  lang=l;
   document.getElementById("title").innerText=text[l].title;
   document.getElementById("subtitle").innerText=text[l].sub;
   document.getElementById("t_units").innerText=text[l].units;
@@ -148,49 +140,42 @@ function setLang(l){
   document.getElementById("t_net").innerText=text[l].net;
   document.getElementById("t_payback").innerText=text[l].payback;
 }
+
 setLang("en");
 
-/* ---------- CALCULATOR LOGIC ---------- */
 function calculate(){
-  let bill = Number(document.getElementById("bill").value);
-  if(bill <= 0){
-    alert("Please enter a valid electricity bill amount");
-    return;
-  }
+  let bill=Number(document.getElementById("bill").value);
+  if(bill<=0){alert("Enter valid bill");return;}
 
-  // Units calculation
-  let units = bill / 10; // ₹10 per unit
+  const unitCost=10;
+  const unitsPerKwMonth=120;
+  const costPerKw=60000;
+  const subsidyPerKw=18000;
+  const maxSubsidy=78000;
 
-  // kW calculation (ROUND UP)
-  let kw = Math.ceil(units / 120); // 1 kW = 120 units/month
+  let units=bill/unitCost;
+  let kw=Math.round((units/unitsPerKwMonth)*2)/2;
 
-  // Costs
-  let systemCost = kw * 60000;
+  let systemCost=kw*costPerKw;
+  let subsidy=Math.min(kw*subsidyPerKw,maxSubsidy);
+  let net=systemCost-subsidy;
 
-  // Subsidy (PM Surya Ghar – Maharashtra)
-  let subsidy = kw <= 1 ? 30000 : kw <= 2 ? 60000 : 78000;
+  let annualSaving=bill*12;
+  let paybackMonths=Math.round((net/annualSaving)*12);
 
-  let net = systemCost - subsidy;
-  let paybackMonths = Math.round((net / (bill * 12)) * 12);
+  document.getElementById("units").innerText=units.toFixed(0);
+  document.getElementById("kw").innerText=kw+" kW";
+  document.getElementById("cost").innerText="₹ "+systemCost.toLocaleString();
+  document.getElementById("subsidy").innerText="₹ "+subsidy.toLocaleString();
+  document.getElementById("net").innerText="₹ "+net.toLocaleString();
+  document.getElementById("payback").innerText=paybackMonths+" months";
 
-  // UI update
-  document.getElementById("units").innerText = units.toFixed(0) + " units";
-  document.getElementById("kw").innerText = kw + " kW";
-  document.getElementById("cost").innerText = "₹ " + systemCost.toLocaleString();
-  document.getElementById("subsidy").innerText = "₹ " + subsidy.toLocaleString();
-  document.getElementById("net").innerText = "₹ " + net.toLocaleString();
-  document.getElementById("payback").innerText = paybackMonths + " months";
-
-  document.getElementById("resultBox").style.display = "block";
+  document.getElementById("resultBox").style.display="block";
 }
 
-/* ---------- WHATSAPP ---------- */
-function openWhatsApp(){
-  window.open(
-    "https://wa.me/919011788999?text=" +
-    encodeURIComponent("Hello Santaji Electricals, I want to install rooftop solar under PM Surya Ghar Muft Bijli Yojana."),
-    "_blank"
-  );
+function whatsapp(){
+  window.open("https://wa.me/919011788999?text="+
+  encodeURIComponent("I want solar installation under PM Surya Ghar Yojana, Please Contact ME"));
 }
 </script>
 
