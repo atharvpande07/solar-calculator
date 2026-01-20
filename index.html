@@ -95,8 +95,6 @@ button:hover{background:#15803d;}
   <h2 id="title">Solar Savings Calculator</h2>
   <div class="sub" id="subtitle">PM Surya Ghar Muft Bijli Yojana</div>
 
-  <input id="name" type="text" placeholder="Your Name">
-  <input id="phone" type="tel" placeholder="Mobile Number">
   <input id="bill" type="number" placeholder="Monthly Electricity Bill (₹)">
 
   <button onclick="calculate()">Calculate Savings</button>
@@ -114,7 +112,9 @@ button:hover{background:#15803d;}
     *Government subsidy applicable up to 3 kW only (maximum ₹78,000)
   </div>
 
-  <button class="whatsapp" onclick="submitLead()">Get Free Site Survey</button>
+  <button class="whatsapp" onclick="openWhatsApp()">
+    Get Free Site Survey on WhatsApp
+  </button>
 
   <div class="footer">
     Santaji Electricals<br>
@@ -123,8 +123,6 @@ button:hover{background:#15803d;}
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz8LkyFAlsxZSY4lQSEo0MWMKEXK92vLvWz2-X_bwWVnDAxs7ECSXMSPmX_xhz4MWS0cg/exec";
-
 /* ---------- LANGUAGE ---------- */
 const text = {
   en:{title:"Solar Savings Calculator",sub:"PM Surya Ghar Muft Bijli Yojana",
@@ -152,62 +150,45 @@ function setLang(l){
 }
 setLang("en");
 
-/* ---------- CALCULATOR ---------- */
-let lastCalc = {};
+/* ---------- CALCULATOR LOGIC ---------- */
 function calculate(){
   let bill = Number(document.getElementById("bill").value);
-  if(bill <= 0){ alert("Enter valid bill"); return; }
+  if(bill <= 0){
+    alert("Please enter a valid electricity bill amount");
+    return;
+  }
 
-  let units = bill / 10;
-  let kw = Math.ceil(units / 120);
+  // Units calculation
+  let units = bill / 10; // ₹10 per unit
 
+  // kW calculation (ROUND UP)
+  let kw = Math.ceil(units / 120); // 1 kW = 120 units/month
+
+  // Costs
   let systemCost = kw * 60000;
+
+  // Subsidy (PM Surya Ghar – Maharashtra)
   let subsidy = kw <= 1 ? 30000 : kw <= 2 ? 60000 : 78000;
+
   let net = systemCost - subsidy;
-  let payback = Math.round((net / (bill * 12)) * 12);
+  let paybackMonths = Math.round((net / (bill * 12)) * 12);
 
-  lastCalc = {bill, units, kw, systemCost, subsidy, net, payback};
-
-  document.getElementById("units").innerText = units.toFixed(0);
+  // UI update
+  document.getElementById("units").innerText = units.toFixed(0) + " units";
   document.getElementById("kw").innerText = kw + " kW";
   document.getElementById("cost").innerText = "₹ " + systemCost.toLocaleString();
   document.getElementById("subsidy").innerText = "₹ " + subsidy.toLocaleString();
   document.getElementById("net").innerText = "₹ " + net.toLocaleString();
-  document.getElementById("payback").innerText = payback + " months";
+  document.getElementById("payback").innerText = paybackMonths + " months";
 
   document.getElementById("resultBox").style.display = "block";
 }
 
-/* ---------- LEAD CAPTURE (GET IMAGE METHOD) ---------- */
-function submitLead(){
-  if(!lastCalc.kw){ alert("Calculate savings first"); return; }
-
-  let name = document.getElementById("name").value.trim();
-  let phone = document.getElementById("phone").value.trim();
-  if(name==="" || phone===""){ alert("Enter name & phone"); return; }
-
-  let url =
-  SCRIPT_URL +
-  "?ts=" + Date.now() +   // 🔥 CACHE BUSTER (CRITICAL)
-  "&name=" + encodeURIComponent(name) +
-  "&phone=" + encodeURIComponent(phone) +
-  "&bill=" + lastCalc.bill +
-  "&units=" + lastCalc.units +
-  "&kw=" + lastCalc.kw +
-  "&systemCost=" + lastCalc.systemCost +
-  "&subsidy=" + lastCalc.subsidy +
-  "&net=" + lastCalc.net +
-  "&payback=" + lastCalc.payback;
-
-
-  let img = new Image();
-  img.src = url;
-
-  alert("Thank you! Our team will contact you shortly.");
-
+/* ---------- WHATSAPP ---------- */
+function openWhatsApp(){
   window.open(
     "https://wa.me/919011788999?text=" +
-    encodeURIComponent("I want to install rooftop solar under PM Surya Ghar Muft Bijli Yojana."),
+    encodeURIComponent("Hello Santaji Electricals, I want to install rooftop solar under PM Surya Ghar Muft Bijli Yojana."),
     "_blank"
   );
 }
@@ -215,4 +196,3 @@ function submitLead(){
 
 </body>
 </html>
-
