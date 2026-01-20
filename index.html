@@ -225,20 +225,25 @@ function submitLead(){
     payback: lastCalc.paybackMonths
   };
 
-  // FIRE & FORGET (NO CORS, NO RESPONSE)
-  navigator.sendBeacon(
-    SCRIPT_URL,
-    new Blob([JSON.stringify(payload)], { type: "application/json" })
-  );
+  // 🔥 FIX 3 APPLIED HERE
+  fetch(SCRIPT_URL + "?ping=1")
+    .finally(() => {
 
-  alert("Thank you! Our team will contact you shortly.");
+      navigator.sendBeacon(
+        SCRIPT_URL,
+        new Blob([JSON.stringify(payload)], { type: "application/json" })
+      );
 
-  window.open(
-    "https://wa.me/919011788999?text=" +
-    encodeURIComponent("I want to install rooftop solar under PM Surya Ghar Muft Bijli Yojana."),
-    "_blank"
-  );
+      alert("Thank you! Our team will contact you shortly.");
+
+      window.open(
+        "https://wa.me/919011788999?text=" +
+        encodeURIComponent("I want to install rooftop solar under PM Surya Ghar Muft Bijli Yojana."),
+        "_blank"
+      );
+  });
 }
+
 
 </script>
 
